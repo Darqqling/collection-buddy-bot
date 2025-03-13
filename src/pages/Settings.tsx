@@ -2,14 +2,14 @@
 import React, { useState } from 'react';
 import { Layout } from "@/components/Layout";
 import Header from "@/components/Header";
-import { WebhookSetup } from "@/components/WebhookSetup";
+import WebhookSetup from "@/components/WebhookSetup";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { TelegramWebhookConfig } from '@/utils/types';
 
 const Settings = () => {

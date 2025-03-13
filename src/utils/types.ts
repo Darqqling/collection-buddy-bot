@@ -84,16 +84,19 @@ export enum AdminActionType {
   REJECT_PAYMENT = 'reject_payment'
 }
 
+// Updated to match string literals used in code
 export enum PaymentMethod {
   TELEGRAM_STARS = 'telegram_stars'
 }
 
+// Updated to match string literals used in code
 export enum FundraiserStatus {
   ACTIVE = 'active',
   COMPLETED = 'completed',
   BLOCKED = 'blocked'
 }
 
+// Updated to match string literals used in code
 export enum TransactionStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
