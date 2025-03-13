@@ -1,69 +1,112 @@
-# Welcome to your Lovable project
 
-## Project info
+# CollectionBoxBot - Telegram Fundraising Bot
 
-**URL**: https://lovable.dev/projects/59668d8f-a3c8-49d1-a55a-21cc7ce2393a
+CollectionBoxBot is a Telegram bot designed to automate the collection of funds for gifts within group chats. The system includes a bot interface, server backend, and admin CRM panel for centralized management.
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
+- **Telegram Bot**: Interface for users to create and participate in fundraisers
+- **Server/API**: Backend for data management and business logic
+- **CRM/Admin Panel**: Web interface for administrators to manage the platform
 
-**Use Lovable**
+## User Roles and Stories
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/59668d8f-a3c8-49d1-a55a-21cc7ce2393a) and start prompting.
+### Fundraiser Organizer
+1. Create new fundraisers (name, amount, deadline, description)
+2. Receive status notifications about the fundraiser
+3. Manually confirm participant contributions
+4. Complete or cancel fundraisers
+5. View history of organized fundraisers
+6. Manage fundraisers via both group and private chat
 
-Changes made via Lovable will be committed automatically to this repo.
+### Fundraiser Participant
+1. Receive notifications about new fundraisers
+2. Join fundraisers (via "Participate" button)
+3. Select payment method
+4. Receive payment reminders
+5. Manually confirm payments
+6. Receive notifications about fundraiser completion
 
-**Use your preferred IDE**
+### CRM Administrator
+1. View all fundraisers
+2. Block or delete suspicious fundraisers
+3. Manage users (block users)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Core Use Cases
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Fundraiser Organizer
+- Create, configure, launch, complete, and cancel fundraisers
+- Manually confirm participant contributions
+- Receive fundraiser status and reports
 
-Follow these steps:
+### Fundraiser Participant
+- Receive notifications and confirm participation
+- Make and confirm payments
+- Receive reminders and final reports
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### CRM Administrator
+- View and manage fundraisers
+- Block users and fundraisers
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Implementation Status
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Currently Implemented
+- CRM/Admin panel structure
+- User management interface
+- Fundraiser management interface
+- Settings panel for Telegram bot configuration
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### In Development
+- Telegram bot core functionality
+- Webhook integration
+- Payment processing
 
-**Edit a file directly in GitHub**
+### Planned Features
+- Automated payment confirmations
+- Analytics dashboard
+- Multi-language support
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Technical Implementation
 
-**Use GitHub Codespaces**
+- **Bot Interface**: Telegram Bot API via webhooks
+- **Backend**: RESTful API
+- **Admin Panel**: React with Tailwind CSS and shadcn/ui
+- **Data Storage**: Database (to be determined)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Monetization Strategy
 
-## What technologies are used for this project?
+- **MVP**: Only Telegram Stars donations
+- **Future**: Partner integrations, premium features
 
-This project is built with .
+## Development & Deployment
 
+The application is built with:
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Sequence Diagrams
 
-Simply open [Lovable](https://lovable.dev/projects/59668d8f-a3c8-49d1-a55a-21cc7ce2393a) and click on Share -> Publish.
+### Fundraiser Creation Process
+```
+Organizer -> Bot: Create fundraiser command
+Bot -> Organizer: Request fundraiser details
+Organizer -> Bot: Provide details
+Bot -> API: Save fundraiser data
+API -> Bot: Confirm creation
+Bot -> Group Chat: Announce new fundraiser
+```
 
-## I want to use a custom domain - is that possible?
+### Contribution Process
+```
+Participant -> Bot: "Participate" button
+Bot -> Participant: Payment instructions
+Participant -> Bot: "I paid" confirmation
+Bot -> Organizer: Payment notification
+Organizer -> Bot: Confirm payment
+Bot -> Participant: Payment confirmed
+Bot -> Group Chat: Update fundraiser status
+```
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)

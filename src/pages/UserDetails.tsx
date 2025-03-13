@@ -1,454 +1,378 @@
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Layout } from "@/components/Layout";
 import Header from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  ArrowLeft, 
-  Ban, 
-  CalendarDays, 
-  ChevronRight, 
-  Hand, 
-  Landmark, 
-  ListFilter, 
-  PiggyBank, 
-  ShieldAlert, 
-  Unlock, 
-  UserCog
-} from "lucide-react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Fundraiser, FundraiserStatus, Transaction, TransactionStatus, PaymentMethod, User } from "@/utils/types";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { User, Fundraiser, Transaction, TransactionStatus, PaymentMethod, FundraiserStatus } from '@/utils/types';
+import { useToast } from "@/hooks/use-toast";
 
-// Mock function for fetching user transactions
-const fetchUserTransactions = async (userId: string): Promise<Transaction[]> => {
-  // Simulated API call delay
-  await new Promise(resolve => setTimeout(resolve, 800));
+// Mock fetch functions
+const fetchUserDetails = async (userId: string): Promise<User> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return {
+    id: userId,
+    username: "john_doe",
+    firstName: "John",
+    lastName: "Doe",
+    telegramId: 123456789,
+    isAdmin: false,
+    isBanned: false,
+    createdAt: "2023-09-01T10:00:00Z",
+    lastActive: "2023-11-15T14:30:00Z",
+    totalFundraisersCreated: 5,
+    totalDonationsAmount: 750
+  };
+};
+
+const fetchUserFundraisers = async (userId: string): Promise<Fundraiser[]> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 700));
   
   return [
     {
-      id: "tr-56",
-      fundraiserId: "fund-15",
-      fundraiserTitle: "Помощь приюту для животных",
-      donorId: userId,
-      donorUsername: "ivan_petrov",
-      amount: 1000,
-      currency: "RUB",
-      status: TransactionStatus.CONFIRMED,
-      paymentMethod: PaymentMethod.TELEGRAM_STARS,
-      createdAt: "2023-10-28T18:12:30Z",
-      confirmedAt: "2023-10-28T18:20:15Z"
+      id: "1",
+      title: "Birthday Gift for Alice",
+      description: "Collecting funds for a surprise birthday gift for Alice.",
+      goal: 300,
+      raised: 250,
+      creatorId: userId,
+      creatorUsername: "john_doe",
+      status: FundraiserStatus.ACTIVE,
+      createdAt: "2023-10-01T10:00:00Z",
+      updatedAt: "2023-10-10T15:30:00Z",
+      donationsCount: 5
     },
     {
-      id: "tr-42",
-      fundraiserId: "fund-9",
-      fundraiserTitle: "Помощь погорельцам",
-      donorId: userId,
-      donorUsername: "ivan_petrov",
-      amount: 2500,
-      currency: "RUB",
-      status: TransactionStatus.CONFIRMED,
-      paymentMethod: PaymentMethod.TELEGRAM_STARS,
-      createdAt: "2023-10-15T12:45:33Z",
-      confirmedAt: "2023-10-15T13:05:22Z"
-    },
-    {
-      id: "tr-38",
-      fundraiserId: "fund-7",
-      fundraiserTitle: "Сбор на лечение",
-      donorId: userId,
-      donorUsername: "ivan_petrov",
-      amount: 1500,
-      currency: "RUB",
-      status: TransactionStatus.CONFIRMED,
-      paymentMethod: PaymentMethod.TELEGRAM_STARS,
-      createdAt: "2023-10-10T09:33:45Z",
-      confirmedAt: "2023-10-10T10:02:18Z"
-    },
+      id: "2",
+      title: "Team Lunch Party",
+      description: "Let's collect funds for our monthly team lunch.",
+      goal: 500,
+      raised: 500,
+      creatorId: userId,
+      creatorUsername: "john_doe",
+      status: FundraiserStatus.COMPLETED,
+      createdAt: "2023-09-01T10:00:00Z",
+      updatedAt: "2023-09-15T12:00:00Z",
+      completedAt: "2023-09-15T12:00:00Z",
+      donationsCount: 10
+    }
   ];
 };
 
-const UserDetails = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+const fetchUserTransactions = async (userId: string): Promise<Transaction[]> => {
+  // Simulate API call
+  await new Promise(resolve => setTimeout(resolve, 600));
   
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['user', id],
-    queryFn: () => fetchUserDetails(id || ''),
-    enabled: !!id,
-  });
-  
-  const { data: fundraisers, isLoading: isLoadingFundraisers } = useQuery({
-    queryKey: ['user-fundraisers', id],
-    queryFn: () => fetchUserFundraisers(id || ''),
-    enabled: !!id,
-  });
-  
-  const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
-    queryKey: ['user-transactions', id],
-    queryFn: () => fetchUserTransactions(id || ''),
-    enabled: !!id,
-  });
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getFundraiserStatusBadge = (status: FundraiserStatus) => {
-    switch (status) {
-      case FundraiserStatus.ACTIVE:
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Активный</Badge>;
-      case FundraiserStatus.COMPLETED:
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Завершен</Badge>;
-      case FundraiserStatus.BLOCKED:
-        return <Badge variant="destructive">Заблокирован</Badge>;
-      default:
-        return <Badge variant="secondary">Неизвестно</Badge>;
+  return [
+    {
+      id: "1",
+      fundraiserId: "3",
+      fundraiserTitle: "Office Christmas Party",
+      donorId: userId,
+      donorUsername: "john_doe",
+      amount: 50,
+      currency: "USD",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
+      createdAt: "2023-11-01T09:45:00Z",
+      confirmedAt: "2023-11-01T10:00:00Z"
+    },
+    {
+      id: "2",
+      fundraiserId: "4",
+      fundraiserTitle: "Welcome Gift for New Manager",
+      donorId: userId,
+      donorUsername: "john_doe",
+      amount: 25,
+      currency: "USD",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
+      createdAt: "2023-10-15T14:20:00Z",
+      confirmedAt: "2023-10-15T14:30:00Z"
+    },
+    {
+      id: "3",
+      fundraiserId: "1",
+      fundraiserTitle: "Birthday Gift for Alice",
+      donorId: userId,
+      donorUsername: "john_doe",
+      amount: 30,
+      currency: "USD",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
+      createdAt: "2023-10-05T11:30:00Z",
+      confirmedAt: "2023-10-05T11:40:00Z"
     }
-  };
+  ];
+};
 
-  if (isLoading) {
+interface UserDetailsProps {}
+
+const UserDetails: React.FC<UserDetailsProps> = () => {
+  const { id } = useParams<{ id: string }>();
+  const [user, setUser] = useState<User | null>(null);
+  const [fundraisers, setFundraisers] = useState<Fundraiser[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [activeTab, setActiveTab] = useState("profile");
+  const [open, setOpen] = React.useState(false);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    if (id) {
+      fetchUserDetails(id)
+        .then(userData => setUser(userData))
+        .catch(error => {
+          console.error("Failed to fetch user details:", error);
+          toast({
+            title: "Ошибка",
+            description: "Не удалось загрузить данные пользователя.",
+            variant: "destructive",
+          });
+        });
+        
+      fetchUserFundraisers(id)
+        .then(fundraiserData => setFundraisers(fundraiserData))
+        .catch(error => console.error("Failed to fetch user fundraisers:", error));
+        
+      fetchUserTransactions(id)
+        .then(transactionData => setTransactions(transactionData))
+        .catch(error => console.error("Failed to fetch user transactions:", error));
+    }
+  }, [id, toast]);
+  
+  if (!id) {
     return (
-      <div className="container mx-auto py-6">
-        <Button 
-          variant="ghost" 
-          className="mb-4" 
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <div className="h-[500px] flex items-center justify-center">
-          <p className="text-muted-foreground">Загрузка информации о пользователе...</p>
+      <Layout>
+        <div className="text-center py-10">
+          <h2 className="text-2xl font-bold">Ошибка</h2>
+          <p className="text-muted-foreground">Не указан ID пользователя.</p>
         </div>
-      </div>
+      </Layout>
     );
   }
-
+  
   if (!user) {
     return (
-      <div className="container mx-auto py-6">
-        <Button 
-          variant="ghost" 
-          className="mb-4" 
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <div className="h-[500px] flex items-center justify-center">
-          <p className="text-muted-foreground">Пользователь не найден</p>
+      <Layout>
+        <div className="text-center py-10">
+          <h2 className="text-2xl font-bold">Загрузка...</h2>
+          <p className="text-muted-foreground">Пожалуйста, подождите, данные загружаются.</p>
         </div>
-      </div>
+      </Layout>
     );
   }
+  
+  const handleBanUser = () => {
+    setOpen(false);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setUser(prevUser => prevUser ? { ...prevUser, isBanned: true } : null);
+      
+      toast({
+        title: "Пользователь заблокирован",
+        description: "Пользователь успешно заблокирован в системе.",
+      });
+    }, 500);
+  };
+  
+  const handleUnbanUser = () => {
+    setOpen(false);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setUser(prevUser => prevUser ? { ...prevUser, isBanned: false } : null);
+      
+      toast({
+        title: "Пользователь разблокирован",
+        description: "Пользователь успешно разблокирован в системе.",
+      });
+    }, 500);
+  };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Назад
-        </Button>
-        <ChevronRight className="mx-2 h-4 w-4 text-muted-foreground" />
-        <span className="text-muted-foreground">Детали пользователя</span>
-      </div>
-      
+    <Layout>
       <Header 
-        title={`${user.firstName} ${user.lastName || ''}`}
-        description={`@${user.username} • ID: ${user.id}`}
-        actions={
-          <div className="flex gap-2">
-            {user.isBanned ? (
-              <Button variant="outline" className="gap-2">
-                <Unlock className="h-4 w-4" />
-                Разблокировать
-              </Button>
-            ) : (
+        title="Детали пользователя" 
+        description="Просмотр и управление информацией о пользователе"
+      />
+      
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Информация о пользователе</CardTitle>
+            <CardDescription>
+              Основные данные пользователя и его статус в системе
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center space-x-4">
+            <Avatar>
+              <AvatarImage src={`https://avatar.vercel.sh/${user.username}.png`} />
+              <AvatarFallback>{user.firstName[0]}{user.lastName ? user.lastName[0] : ''}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h4 className="text-lg font-semibold">{user.firstName} {user.lastName}</h4>
+              <p className="text-sm text-muted-foreground">@{user.username}</p>
+              <div className="flex items-center space-x-2 mt-2">
+                {user.isAdmin && <Badge>Администратор</Badge>}
+                {user.isBanned && <Badge variant="destructive">Заблокирован</Badge>}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Separator />
+        
+        <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="profile">Профиль</TabsTrigger>
+            <TabsTrigger value="fundraisers">Сборы</TabsTrigger>
+            <TabsTrigger value="transactions">Транзакции</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Детали профиля</CardTitle>
+                <CardDescription>
+                  Подробная информация о пользователе
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">ID:</p>
+                    <p className="text-muted-foreground">{user.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Telegram ID:</p>
+                    <p className="text-muted-foreground">{user.telegramId}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Дата регистрации:</p>
+                    <p className="text-muted-foreground">{new Date(user.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Последняя активность:</p>
+                    <p className="text-muted-foreground">{user.lastActive ? new Date(user.lastActive).toLocaleString() : 'Неизвестно'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Создано сборов:</p>
+                    <p className="text-muted-foreground">{user.totalFundraisersCreated}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Сумма донатов:</p>
+                    <p className="text-muted-foreground">{user.totalDonationsAmount} USD</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="flex justify-end">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="gap-2">
-                    <Ban className="h-4 w-4" />
-                    Заблокировать
+                  <Button variant="destructive">
+                    {user.isBanned ? 'Разблокировать пользователя' : 'Заблокировать пользователя'}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Заблокировать пользователя?</AlertDialogTitle>
+                    <AlertDialogTitle>Подтверждение действия</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Блокировка пользователя запретит ему создавать новые сборы и делать пожертвования. 
-                      Все его активные сборы будут скрыты. Эта операция будет записана в журнал действий.
+                      Вы уверены, что хотите {user.isBanned ? 'разблокировать' : 'заблокировать'} этого пользователя?
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Отмена</AlertDialogCancel>
-                    <AlertDialogAction className="bg-destructive text-destructive-foreground">
-                      Заблокировать
+                    <AlertDialogAction onClick={user.isBanned ? handleUnbanUser : handleBanUser}>
+                      {user.isBanned ? 'Разблокировать' : 'Заблокировать'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            )}
-            
-            <Button variant="outline" className="gap-2">
-              <UserCog className="h-4 w-4" />
-              Изменить роль
-            </Button>
-          </div>
-        }
-      />
-      
-      <div className="grid gap-6 md:grid-cols-7 mt-6">
-        <div className="col-span-7 md:col-span-5 space-y-6">
-          <Tabs defaultValue="fundraisers" className="w-full">
-            <TabsList>
-              <TabsTrigger value="fundraisers">Сборы средств</TabsTrigger>
-              <TabsTrigger value="donations">Пожертвования</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="fundraisers">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle>Сборы пользователя</CardTitle>
-                    <CardDescription>
-                      Все сборы, созданные этим пользователем
-                    </CardDescription>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="fundraisers" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Сборы пользователя</CardTitle>
+                <CardDescription>
+                  Список всех сборов, созданных пользователем
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {fundraisers.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {fundraisers.map(fundraiser => (
+                      <Card key={fundraiser.id}>
+                        <CardHeader>
+                          <CardTitle>{fundraiser.title}</CardTitle>
+                          <CardDescription>
+                            {fundraiser.description.substring(0, 50)}...
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm font-medium">Собрано:</p>
+                          <p className="text-muted-foreground">{fundraiser.raised} / {fundraiser.goal} USD</p>
+                          <p className="text-sm font-medium">Статус:</p>
+                          <p className="text-muted-foreground">{fundraiser.status}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <ListFilter className="h-4 w-4" />
-                    Фильтр
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingFundraisers ? (
-                    <div className="h-32 flex items-center justify-center">
-                      <p className="text-muted-foreground">Загрузка сборов...</p>
-                    </div>
-                  ) : fundraisers && fundraisers.length > 0 ? (
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Название</TableHead>
-                            <TableHead>Цель</TableHead>
-                            <TableHead>Собрано</TableHead>
-                            <TableHead>Дата создания</TableHead>
-                            <TableHead>Статус</TableHead>
-                            <TableHead className="text-right">Действия</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {fundraisers.map((fundraiser) => (
-                            <TableRow key={fundraiser.id}>
-                              <TableCell className="font-medium">{fundraiser.title}</TableCell>
-                              <TableCell>{fundraiser.goal.toLocaleString()} ₽</TableCell>
-                              <TableCell>{fundraiser.raised.toLocaleString()} ₽</TableCell>
-                              <TableCell>{formatDate(fundraiser.createdAt)}</TableCell>
-                              <TableCell>{getFundraiserStatusBadge(fundraiser.status)}</TableCell>
-                              <TableCell className="text-right">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => navigate(`/fundraisers/${fundraiser.id}`)}
-                                >
-                                  Открыть
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="h-32 flex items-center justify-center">
-                      <p className="text-muted-foreground">Пользователь не создавал сборов</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="donations">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Пожертвования пользователя</CardTitle>
-                  <CardDescription>
-                    Транзакции, выполненные этим пользователем
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingTransactions ? (
-                    <div className="h-32 flex items-center justify-center">
-                      <p className="text-muted-foreground">Загрузка пожертвований...</p>
-                    </div>
-                  ) : transactions && transactions.length > 0 ? (
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Сбор</TableHead>
-                            <TableHead>Сумма</TableHead>
-                            <TableHead>Дата</TableHead>
-                            <TableHead className="text-right">Действия</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {transactions.map((transaction) => (
-                            <TableRow key={transaction.id}>
-                              <TableCell className="font-mono text-xs">{transaction.id}</TableCell>
-                              <TableCell className="font-medium">{transaction.fundraiserTitle}</TableCell>
-                              <TableCell>{transaction.amount.toLocaleString()} {transaction.currency}</TableCell>
-                              <TableCell>{formatDate(transaction.createdAt)}</TableCell>
-                              <TableCell className="text-right">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => navigate(`/fundraisers/${transaction.fundraiserId}`)}
-                                >
-                                  Перейти к сбору
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  ) : (
-                    <div className="h-32 flex items-center justify-center">
-                      <p className="text-muted-foreground">Пользователь не делал пожертвований</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-        
-        <div className="col-span-7 md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Информация</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Telegram ID</span>
-                  <span className="font-medium">{user.telegramId}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Статус</span>
-                  {user.isBanned ? (
-                    <Badge variant="destructive" className="flex items-center gap-1">
-                      <Ban className="h-3 w-3" /> Заблокирован
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      Активен
-                    </Badge>
-                  )}
-                </div>
-                {user.isAdmin && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Роль</span>
-                    <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                      Администратор
-                    </Badge>
-                  </div>
+                ) : (
+                  <p className="text-muted-foreground">У пользователя нет созданных сборов.</p>
                 )}
-              </div>
-              
-              <div className="border-t pt-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-muted-foreground">Дата регистрации</span>
-                  <span className="text-sm">{formatDate(user.createdAt)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Последняя активность</span>
-                  <span className="text-sm">{user.lastActive ? formatDate(user.lastActive) : 'Н/Д'}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
           
-          <Card>
-            <CardHeader>
-              <CardTitle>Статистика</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center">
-                <PiggyBank className="h-5 w-5 text-muted-foreground mr-2" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Создано сборов</p>
-                  <p className="text-2xl font-bold">{user.totalFundraisersCreated || 0}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center">
-                <Hand className="h-5 w-5 text-muted-foreground mr-2" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Сумма пожертвований</p>
-                  <p className="text-2xl font-bold">{(user.totalDonationsAmount || 0).toLocaleString()} ₽</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Действия</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start">
-                <Landmark className="mr-2 h-4 w-4" />
-                Транзакции
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                История активности
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start text-amber-600 hover:text-amber-700">
-                <ShieldAlert className="mr-2 h-4 w-4" />
-                Отметить как подозрительный
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="transactions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Транзакции пользователя</CardTitle>
+                <CardDescription>
+                  Список всех транзакций, связанных с пользователем
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {transactions.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {transactions.map(transaction => (
+                      <Card key={transaction.id}>
+                        <CardHeader>
+                          <CardTitle>{transaction.fundraiserTitle}</CardTitle>
+                          <CardDescription>
+                            Сумма: {transaction.amount} {transaction.currency}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm font-medium">Статус:</p>
+                          <p className="text-muted-foreground">{transaction.status}</p>
+                          <p className="text-sm font-medium">Метод оплаты:</p>
+                          <p className="text-muted-foreground">{transaction.paymentMethod}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">У пользователя нет транзакций.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-    </div>
+    </Layout>
   );
 };
 

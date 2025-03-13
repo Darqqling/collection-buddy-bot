@@ -1,153 +1,213 @@
-// Мок-данные для разработки и тестирования
+
 import { 
   User, 
   Fundraiser, 
   Transaction, 
-  FundraiserStatus, 
-  TransactionStatus, 
+  AdminAction, 
+  AdminActionType,
+  FundraiserStatus,
   PaymentMethod,
-  UserRole, 
-  UserStatus 
+  TransactionStatus,
+  UserRole,
+  UserStatus
 } from './types';
 
-// Вспомогательные функции для получения данных
-export const fetchUserDetails = (userId: string): Promise<User> => {
-  return Promise.resolve(mockUsers.find(user => user.id === userId) || mockUsers[0]);
-};
-
-export const fetchUserTransactions = (userId: string): Promise<Transaction[]> => {
-  return Promise.resolve(mockTransactions.filter(tx => tx.senderId === userId || tx.receiverId === userId));
-};
-
-export const fetchUserFundraisers = (userId: string): Promise<Fundraiser[]> => {
-  return Promise.resolve(mockFundraisers.filter(fr => fr.creatorId === userId));
-};
-
-// Мок-пользователи
-export const mockUsers: User[] = [
+// Users mock data
+export const users: User[] = [
   {
-    id: "user1",
-    telegramId: "12345678",
-    username: "john_doe",
-    firstName: "John",
-    lastName: "Doe",
-    role: UserRole.USER,
-    status: UserStatus.ACTIVE,
-    joinedAt: "2023-04-15T10:30:00Z",
-    lastActive: "2023-08-22T15:45:00Z",
-    avatarUrl: "https://i.pravatar.cc/150?img=1",
+    id: '1',
+    username: 'john_doe',
+    firstName: 'John',
+    lastName: 'Doe',
+    telegramId: 12345678,
+    isAdmin: false,
+    isBanned: false,
+    createdAt: '2023-09-01T10:00:00Z',
+    lastActive: '2023-11-28T15:45:00Z',
+    totalFundraisersCreated: 5,
+    totalDonationsAmount: 850
   },
   {
-    id: "user2",
-    telegramId: "87654321",
-    username: "jane_smith",
-    firstName: "Jane",
-    lastName: "Smith",
-    role: UserRole.USER,
-    status: UserStatus.ACTIVE,
-    joinedAt: "2023-03-10T09:15:00Z",
-    lastActive: "2023-08-21T11:20:00Z",
-    avatarUrl: "https://i.pravatar.cc/150?img=2",
+    id: '2',
+    username: 'jane_smith',
+    firstName: 'Jane',
+    lastName: 'Smith',
+    telegramId: 87654321,
+    isAdmin: false,
+    isBanned: false,
+    createdAt: '2023-09-15T14:30:00Z',
+    lastActive: '2023-11-27T09:20:00Z',
+    totalFundraisersCreated: 3,
+    totalDonationsAmount: 450
   },
   {
-    id: "admin1",
-    telegramId: "98765432",
-    username: "admin_user",
-    firstName: "Admin",
-    lastName: "User",
-    role: UserRole.ADMIN,
-    status: UserStatus.ACTIVE,
-    joinedAt: "2023-01-05T08:00:00Z",
-    lastActive: "2023-08-22T18:30:00Z",
-    avatarUrl: "https://i.pravatar.cc/150?img=3",
+    id: '3',
+    username: 'admin_user',
+    firstName: 'Admin',
+    telegramId: 11223344,
+    isAdmin: true,
+    isBanned: false,
+    createdAt: '2023-08-01T09:00:00Z',
+    lastActive: '2023-11-29T10:15:00Z',
+    totalFundraisersCreated: 0,
+    totalDonationsAmount: 0
+  },
+  {
+    id: '4',
+    username: 'mary_jones',
+    firstName: 'Mary',
+    lastName: 'Jones',
+    telegramId: 44556677,
+    isAdmin: false,
+    isBanned: true,
+    createdAt: '2023-10-01T11:20:00Z',
+    lastActive: '2023-10-15T16:40:00Z',
+    totalFundraisersCreated: 1,
+    totalDonationsAmount: 150
   }
 ];
 
-// Мок-кампании по сбору средств
-export const mockFundraisers: Fundraiser[] = [
+// Fundraisers mock data
+export const fundraisers: Fundraiser[] = [
   {
-    id: "fundraiser1",
-    creatorId: "user1",
-    title: "Help John raise money for education",
-    description: "John needs your help to complete his education. Every dollar counts!",
-    imageUrl: "https://via.placeholder.com/400x200",
-    goalAmount: 5000,
-    currentAmount: 2500,
+    id: '1',
+    title: 'Birthday Gift for Alice',
+    description: 'Collecting funds for a surprise birthday gift for our colleague Alice.',
+    goal: 300,
+    raised: 250,
+    creatorId: '1',
+    creatorUsername: 'john_doe',
     status: FundraiserStatus.ACTIVE,
-    createdAt: "2023-07-01T14:00:00Z",
-    endDate: "2023-12-31T23:59:59Z",
+    createdAt: '2023-11-01T10:30:00Z',
+    updatedAt: '2023-11-28T14:20:00Z',
+    donationsCount: 5
   },
   {
-    id: "fundraiser2",
-    creatorId: "user2",
-    title: "Support Jane's medical expenses",
-    description: "Jane is battling a serious illness and needs financial support for her treatment.",
-    imageUrl: "https://via.placeholder.com/400x200",
-    goalAmount: 10000,
-    currentAmount: 7500,
-    status: FundraiserStatus.ACTIVE,
-    createdAt: "2023-06-15T16:00:00Z",
-    endDate: "2023-11-30T23:59:59Z",
-  },
-  {
-    id: "fundraiser3",
-    creatorId: "user1",
-    title: "Emergency Relief for Earthquake Victims",
-    description: "Donate to provide food, shelter, and medical assistance to those affected by the recent earthquake.",
-    imageUrl: "https://via.placeholder.com/400x200",
-    goalAmount: 20000,
-    currentAmount: 15000,
+    id: '2',
+    title: 'Team Building Event',
+    description: 'Let\'s collect funds for our annual team building event.',
+    goal: 1000,
+    raised: 1000,
+    creatorId: '2',
+    creatorUsername: 'jane_smith',
     status: FundraiserStatus.COMPLETED,
-    createdAt: "2023-05-20T10:00:00Z",
-    endDate: "2023-10-31T23:59:59Z",
+    createdAt: '2023-10-10T09:15:00Z',
+    updatedAt: '2023-11-20T16:45:00Z',
+    completedAt: '2023-11-20T16:45:00Z',
+    donationsCount: 15
+  },
+  {
+    id: '3',
+    title: 'New Year Office Party',
+    description: 'Collecting funds for our office New Year celebration.',
+    goal: 800,
+    raised: 450,
+    creatorId: '1',
+    creatorUsername: 'john_doe',
+    status: FundraiserStatus.ACTIVE,
+    createdAt: '2023-11-15T11:20:00Z',
+    updatedAt: '2023-11-29T13:10:00Z',
+    donationsCount: 7
   }
 ];
 
-// Мок-транзакции
-export const mockTransactions: Transaction[] = [
+// Transactions mock data
+export const transactions: Transaction[] = [
   {
-    id: "tx1",
-    senderId: "user1",
-    receiverId: "fundraiser1",
+    id: '1',
+    fundraiserId: '1',
+    fundraiserTitle: 'Birthday Gift for Alice',
+    donorId: '2',
+    donorUsername: 'jane_smith',
     amount: 50,
-    paymentMethod: PaymentMethod.CREDIT_CARD,
-    status: TransactionStatus.SUCCESSFUL,
-    timestamp: "2023-08-22T10:00:00Z",
+    currency: 'USD',
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
+    status: TransactionStatus.CONFIRMED,
+    createdAt: '2023-11-10T10:45:00Z',
+    confirmedAt: '2023-11-10T10:55:00Z'
   },
   {
-    id: "tx2",
-    senderId: "user2",
-    receiverId: "fundraiser2",
-    amount: 100,
-    paymentMethod: PaymentMethod.PAYPAL,
-    status: TransactionStatus.SUCCESSFUL,
-    timestamp: "2023-08-22T11:00:00Z",
-  },
-  {
-    id: "tx3",
-    senderId: "user1",
-    receiverId: "fundraiser1",
-    amount: 25,
-    paymentMethod: PaymentMethod.CREDIT_CARD,
-    status: TransactionStatus.PENDING,
-    timestamp: "2023-08-22T12:00:00Z",
-  },
-  {
-    id: "tx4",
-    senderId: "user2",
-    receiverId: "fundraiser2",
+    id: '2',
+    fundraiserId: '1',
+    fundraiserTitle: 'Birthday Gift for Alice',
+    donorId: '3',
+    donorUsername: 'admin_user',
     amount: 75,
-    paymentMethod: PaymentMethod.PAYPAL,
-    status: TransactionStatus.FAILED,
-    timestamp: "2023-08-22T13:00:00Z",
+    currency: 'USD',
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
+    status: TransactionStatus.CONFIRMED,
+    createdAt: '2023-11-12T14:30:00Z',
+    confirmedAt: '2023-11-12T14:40:00Z'
   },
   {
-    id: "tx5",
-    senderId: "user1",
-    receiverId: "fundraiser3",
-    amount: 120,
-    paymentMethod: PaymentMethod.BITCOIN,
-    status: TransactionStatus.SUCCESSFUL,
-    timestamp: "2023-08-23T14:00:00Z",
+    id: '3',
+    fundraiserId: '2',
+    fundraiserTitle: 'Team Building Event',
+    donorId: '1',
+    donorUsername: 'john_doe',
+    amount: 100,
+    currency: 'USD',
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
+    status: TransactionStatus.CONFIRMED,
+    createdAt: '2023-11-01T09:20:00Z',
+    confirmedAt: '2023-11-01T09:30:00Z'
+  },
+  {
+    id: '4',
+    fundraiserId: '3',
+    fundraiserTitle: 'New Year Office Party',
+    donorId: '2',
+    donorUsername: 'jane_smith',
+    amount: 200,
+    currency: 'USD',
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
+    status: TransactionStatus.PENDING,
+    createdAt: '2023-11-28T16:15:00Z'
+  },
+  {
+    id: '5',
+    fundraiserId: '3',
+    fundraiserTitle: 'New Year Office Party',
+    donorId: '1',
+    donorUsername: 'john_doe',
+    amount: 250,
+    currency: 'USD',
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
+    status: TransactionStatus.CONFIRMED,
+    createdAt: '2023-11-25T11:10:00Z',
+    confirmedAt: '2023-11-25T11:30:00Z'
+  }
+];
+
+// Admin actions mock data
+export const adminActions: AdminAction[] = [
+  {
+    id: '1',
+    adminId: '3',
+    adminUsername: 'admin_user',
+    actionType: AdminActionType.BLOCK,
+    targetType: 'user',
+    targetId: '4',
+    details: 'Blocked user for violating community guidelines',
+    createdAt: '2023-10-15T15:30:00Z'
+  },
+  {
+    id: '2',
+    adminId: '3',
+    adminUsername: 'admin_user',
+    actionType: AdminActionType.CONFIRM_PAYMENT,
+    targetType: 'transaction',
+    targetId: '3',
+    details: 'Manually confirmed payment for Team Building Event',
+    createdAt: '2023-11-01T09:30:00Z'
+  },
+  {
+    id: '3',
+    adminId: '3',
+    adminUsername: 'admin_user',
+    actionType: AdminActionType.LOGIN,
+    targetType: 'system',
+    details: 'Admin login',
+    createdAt: '2023-11-29T10:15:00Z'
   }
 ];
