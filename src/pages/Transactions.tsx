@@ -32,7 +32,7 @@ import {
   XCircle 
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Transaction, TransactionStatus } from "@/utils/types";
+import { Transaction, TransactionStatus, PaymentMethod } from "@/utils/types";
 
 // Mock function for fetching transactions - would be replaced with actual API call
 const fetchTransactions = async (): Promise<Transaction[]> => {
@@ -49,7 +49,7 @@ const fetchTransactions = async (): Promise<Transaction[]> => {
       amount: 1000,
       currency: "RUB",
       status: TransactionStatus.PENDING,
-      paymentMethod: "telegram_stars",
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-11-01T14:32:21Z",
     },
     {
@@ -61,7 +61,7 @@ const fetchTransactions = async (): Promise<Transaction[]> => {
       amount: 500,
       currency: "RUB",
       status: TransactionStatus.CONFIRMED,
-      paymentMethod: "telegram_stars",
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-11-01T13:18:44Z",
       confirmedAt: "2023-11-01T14:05:11Z",
     },
@@ -74,7 +74,7 @@ const fetchTransactions = async (): Promise<Transaction[]> => {
       amount: 2000,
       currency: "RUB",
       status: TransactionStatus.REJECTED,
-      paymentMethod: "telegram_stars",
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-10-31T17:42:33Z",
       rejectedAt: "2023-10-31T18:30:05Z",
       notes: "Ошибка при обработке платежа",
@@ -88,7 +88,7 @@ const fetchTransactions = async (): Promise<Transaction[]> => {
       amount: 750,
       currency: "RUB",
       status: TransactionStatus.CONFIRMED,
-      paymentMethod: "telegram_stars",
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-10-30T09:12:51Z",
       confirmedAt: "2023-10-30T10:08:22Z",
     },
@@ -101,7 +101,7 @@ const fetchTransactions = async (): Promise<Transaction[]> => {
       amount: 1500,
       currency: "RUB",
       status: TransactionStatus.PENDING,
-      paymentMethod: "telegram_stars",
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-10-29T20:55:33Z",
     },
   ];

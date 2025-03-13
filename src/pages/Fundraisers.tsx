@@ -14,8 +14,8 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { FileText, Plus, Search } from 'lucide-react';
-import { Fundraiser } from '@/utils/types';
-import { useToast } from "@/components/ui/use-toast";
+import { Fundraiser, FundraiserStatus } from '@/utils/types';
+import { useToast } from "@/hooks/use-toast";
 
 const mockFundraisers: Fundraiser[] = [
   {
@@ -26,7 +26,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 7500,
     creatorId: '1',
     creatorUsername: 'john_doe',
-    status: 'active',
+    status: FundraiserStatus.ACTIVE,
     createdAt: '2023-09-15T10:30:00Z',
     updatedAt: '2023-10-10T14:20:00Z',
     imageUrl: 'https://images.unsplash.com/photo-1469571486292-b53601021a68?q=80&w=2874&auto=format&fit=crop'
@@ -39,7 +39,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 5000,
     creatorId: '2',
     creatorUsername: 'gardenlover',
-    status: 'completed',
+    status: FundraiserStatus.COMPLETED,
     createdAt: '2023-08-20T09:15:00Z',
     updatedAt: '2023-10-05T16:45:00Z',
     imageUrl: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=2940&auto=format&fit=crop'
@@ -52,7 +52,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 3000,
     creatorId: '3',
     creatorUsername: 'healthmatters',
-    status: 'active',
+    status: FundraiserStatus.ACTIVE,
     createdAt: '2023-10-01T11:20:00Z',
     updatedAt: '2023-10-12T13:10:00Z',
     imageUrl: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2880&auto=format&fit=crop'
@@ -65,7 +65,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 2500,
     creatorId: '4',
     creatorUsername: 'edusupporter',
-    status: 'active',
+    status: FundraiserStatus.ACTIVE,
     createdAt: '2023-09-25T08:45:00Z',
     updatedAt: '2023-10-11T09:30:00Z',
     imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2922&auto=format&fit=crop'
@@ -78,7 +78,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 4800,
     creatorId: '5',
     creatorUsername: 'animalfriend',
-    status: 'active',
+    status: FundraiserStatus.ACTIVE,
     createdAt: '2023-09-10T13:20:00Z',
     updatedAt: '2023-10-09T15:40:00Z',
     imageUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?q=80&w=2942&auto=format&fit=crop'
@@ -91,7 +91,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 3000,
     creatorId: '6',
     creatorUsername: 'sportscoach',
-    status: 'completed',
+    status: FundraiserStatus.COMPLETED,
     createdAt: '2023-08-15T10:10:00Z',
     updatedAt: '2023-09-20T11:25:00Z',
     imageUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=2940&auto=format&fit=crop'
@@ -104,7 +104,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 250,
     creatorId: '7',
     creatorUsername: 'spammer123',
-    status: 'blocked',
+    status: FundraiserStatus.BLOCKED,
     createdAt: '2023-10-02T16:50:00Z',
     updatedAt: '2023-10-03T09:15:00Z',
   },
@@ -116,7 +116,7 @@ const Fundraisers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   
-  const handleStatusChange = (fundraiserId: string, newStatus: 'active' | 'completed' | 'blocked') => {
+  const handleStatusChange = (fundraiserId: string, newStatus: FundraiserStatus) => {
     setFundraisers(prev => 
       prev.map(fundraiser => 
         fundraiser.id === fundraiserId 

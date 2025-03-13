@@ -21,7 +21,7 @@ import {
   Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Fundraiser, Transaction, User } from '@/utils/types';
+import { Fundraiser, Transaction, User, FundraiserStatus, TransactionStatus, PaymentMethod } from '@/utils/types';
 
 const mockFundraisers: Fundraiser[] = [
   {
@@ -32,7 +32,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 7500,
     creatorId: '1',
     creatorUsername: 'john_doe',
-    status: 'active',
+    status: FundraiserStatus.ACTIVE,
     createdAt: '2023-09-15T10:30:00Z',
     updatedAt: '2023-10-10T14:20:00Z',
   },
@@ -44,7 +44,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 5000,
     creatorId: '2',
     creatorUsername: 'gardenlover',
-    status: 'completed',
+    status: FundraiserStatus.COMPLETED,
     createdAt: '2023-08-20T09:15:00Z',
     updatedAt: '2023-10-05T16:45:00Z',
   },
@@ -56,7 +56,7 @@ const mockFundraisers: Fundraiser[] = [
     raised: 3000,
     creatorId: '3',
     creatorUsername: 'healthmatters',
-    status: 'active',
+    status: FundraiserStatus.ACTIVE,
     createdAt: '2023-10-01T11:20:00Z',
     updatedAt: '2023-10-12T13:10:00Z',
   },
@@ -70,8 +70,8 @@ const mockTransactions: Transaction[] = [
     donorUsername: 'generous_user',
     amount: 500,
     currency: 'USD',
-    status: 'pending',
-    paymentMethod: 'telegram_stars',
+    status: TransactionStatus.PENDING,
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
     createdAt: '2023-10-10T15:30:00Z',
   },
   {
@@ -81,8 +81,8 @@ const mockTransactions: Transaction[] = [
     donorUsername: 'charity_lover',
     amount: 250,
     currency: 'USD',
-    status: 'confirmed',
-    paymentMethod: 'telegram_stars',
+    status: TransactionStatus.CONFIRMED,
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
     createdAt: '2023-10-09T10:15:00Z',
     confirmedAt: '2023-10-09T10:45:00Z',
   },
@@ -93,8 +93,8 @@ const mockTransactions: Transaction[] = [
     donorUsername: 'eco_friend',
     amount: 1000,
     currency: 'USD',
-    status: 'confirmed',
-    paymentMethod: 'telegram_stars',
+    status: TransactionStatus.CONFIRMED,
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
     createdAt: '2023-10-08T09:20:00Z',
     confirmedAt: '2023-10-08T09:50:00Z',
   },
@@ -105,8 +105,8 @@ const mockTransactions: Transaction[] = [
     donorUsername: 'health_supporter',
     amount: 750,
     currency: 'USD',
-    status: 'rejected',
-    paymentMethod: 'telegram_stars',
+    status: TransactionStatus.REJECTED,
+    paymentMethod: PaymentMethod.TELEGRAM_STARS,
     createdAt: '2023-10-07T14:45:00Z',
   },
 ];

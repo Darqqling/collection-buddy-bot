@@ -23,6 +23,7 @@ const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [adminEmail, setAdminEmail] = useState("admin@collectionboxbot.com");
   const [botToken, setBotToken] = useState("••••••••••••••••••••••••••••••");
+  const { toast } = useToast();
 
   const handleSaveGeneral = () => {
     toast({
@@ -42,6 +43,14 @@ const Settings = () => {
     toast({
       title: "API settings saved",
       description: "Your API settings have been updated successfully.",
+    });
+  };
+
+  const handleWebhookUpdate = (newConfig: TelegramWebhookConfig) => {
+    setWebhookConfig(newConfig);
+    toast({
+      title: "Webhook updated",
+      description: "Webhook configuration has been updated successfully.",
     });
   };
 
@@ -84,7 +93,7 @@ const Settings = () => {
           </TabsContent>
           
           <TabsContent value="webhook" className="space-y-4">
-            <WebhookSetup />
+            <WebhookSetup webhookConfig={webhookConfig} onUpdate={handleWebhookUpdate} />
           </TabsContent>
           
           <TabsContent value="notifications" className="space-y-4">

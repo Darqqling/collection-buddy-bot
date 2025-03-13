@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
@@ -28,7 +27,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Fundraiser, FundraiserStatus, Transaction, User } from "@/utils/types";
+import { Fundraiser, FundraiserStatus, Transaction, TransactionStatus, PaymentMethod, User } from "@/utils/types";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -40,75 +39,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-// Mock function for fetching user data - would be replaced with actual API call
-const fetchUserDetails = async (id: string): Promise<User> => {
-  // Simulated API call delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  return {
-    id,
-    username: "ivan_petrov",
-    firstName: "Иван",
-    lastName: "Петров",
-    telegramId: 123456789,
-    isAdmin: false,
-    isBanned: false,
-    createdAt: "2023-09-10T12:30:00Z",
-    lastActive: "2023-11-01T15:45:12Z",
-    totalFundraisersCreated: 3,
-    totalDonationsAmount: 7500
-  };
-};
-
-// Mock function for fetching user fundraisers
-const fetchUserFundraisers = async (userId: string): Promise<Fundraiser[]> => {
-  // Simulated API call delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  return [
-    {
-      id: "fund-12",
-      title: "Сбор на лечение кота Мурзика",
-      description: "Необходима операция для кота после несчастного случая",
-      goal: 15000,
-      raised: 12800,
-      creatorId: userId,
-      creatorUsername: "ivan_petrov",
-      status: FundraiserStatus.ACTIVE,
-      createdAt: "2023-10-25T09:15:00Z",
-      updatedAt: "2023-11-01T10:30:00Z",
-      donationsCount: 18
-    },
-    {
-      id: "fund-8",
-      title: "Помощь детскому дому №5",
-      description: "Сбор на книги и учебные материалы для детей",
-      goal: 20000,
-      raised: 20000,
-      creatorId: userId,
-      creatorUsername: "ivan_petrov",
-      status: FundraiserStatus.COMPLETED,
-      createdAt: "2023-09-20T14:22:00Z",
-      updatedAt: "2023-10-15T18:45:00Z",
-      completedAt: "2023-10-15T18:45:00Z",
-      donationsCount: 42
-    },
-    {
-      id: "fund-3",
-      title: "Ремонт детской площадки",
-      description: "Восстановление детской площадки в нашем дворе",
-      goal: 30000,
-      raised: 5000,
-      creatorId: userId,
-      creatorUsername: "ivan_petrov",
-      status: FundraiserStatus.BLOCKED,
-      createdAt: "2023-08-15T11:10:00Z",
-      updatedAt: "2023-08-30T17:20:00Z",
-      donationsCount: 7
-    }
-  ];
-};
 
 // Mock function for fetching user transactions
 const fetchUserTransactions = async (userId: string): Promise<Transaction[]> => {
@@ -124,8 +54,8 @@ const fetchUserTransactions = async (userId: string): Promise<Transaction[]> => 
       donorUsername: "ivan_petrov",
       amount: 1000,
       currency: "RUB",
-      status: "confirmed",
-      paymentMethod: "telegram_stars",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-10-28T18:12:30Z",
       confirmedAt: "2023-10-28T18:20:15Z"
     },
@@ -137,8 +67,8 @@ const fetchUserTransactions = async (userId: string): Promise<Transaction[]> => 
       donorUsername: "ivan_petrov",
       amount: 2500,
       currency: "RUB",
-      status: "confirmed",
-      paymentMethod: "telegram_stars",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-10-15T12:45:33Z",
       confirmedAt: "2023-10-15T13:05:22Z"
     },
@@ -150,8 +80,8 @@ const fetchUserTransactions = async (userId: string): Promise<Transaction[]> => 
       donorUsername: "ivan_petrov",
       amount: 1500,
       currency: "RUB",
-      status: "confirmed",
-      paymentMethod: "telegram_stars",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-10-10T09:33:45Z",
       confirmedAt: "2023-10-10T10:02:18Z"
     },

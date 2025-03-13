@@ -28,7 +28,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Fundraiser, FundraiserStatus, Transaction } from "@/utils/types";
+import { Fundraiser, FundraiserStatus, Transaction, TransactionStatus, PaymentMethod } from "@/utils/types";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -75,8 +75,8 @@ const fetchFundraiserTransactions = async (id: string): Promise<Transaction[]> =
       donorUsername: "alexey87",
       amount: 1000,
       currency: "RUB",
-      status: "confirmed",
-      paymentMethod: "telegram_stars",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-11-01T14:32:21Z",
       confirmedAt: "2023-11-01T14:45:30Z"
     },
@@ -87,8 +87,8 @@ const fetchFundraiserTransactions = async (id: string): Promise<Transaction[]> =
       donorUsername: "marina_ivanova",
       amount: 500,
       currency: "RUB",
-      status: "confirmed",
-      paymentMethod: "telegram_stars",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-11-01T13:18:44Z",
       confirmedAt: "2023-11-01T14:05:11Z"
     },
@@ -99,8 +99,8 @@ const fetchFundraiserTransactions = async (id: string): Promise<Transaction[]> =
       donorUsername: "vladimir_k",
       amount: 2000,
       currency: "RUB",
-      status: "confirmed",
-      paymentMethod: "telegram_stars",
+      status: TransactionStatus.CONFIRMED,
+      paymentMethod: PaymentMethod.TELEGRAM_STARS,
       createdAt: "2023-10-28T09:42:33Z",
       confirmedAt: "2023-10-28T10:15:22Z"
     },
