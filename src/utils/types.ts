@@ -9,6 +9,8 @@ export interface User {
   isBanned: boolean;
   createdAt: string;
   lastActive?: string;
+  totalFundraisersCreated?: number;
+  totalDonationsAmount?: number;
 }
 
 export interface Fundraiser {
@@ -19,23 +21,28 @@ export interface Fundraiser {
   raised: number;
   creatorId: string;
   creatorUsername: string;
-  status: 'active' | 'completed' | 'blocked';
+  status: FundraiserStatus;
   createdAt: string;
   updatedAt: string;
   imageUrl?: string;
+  completedAt?: string;
+  donationsCount?: number;
 }
 
 export interface Transaction {
   id: string;
   fundraiserId: string;
+  fundraiserTitle?: string;
   donorId: string;
   donorUsername: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'confirmed' | 'rejected';
-  paymentMethod: 'telegram_stars';
+  status: TransactionStatus;
+  paymentMethod: PaymentMethod;
   createdAt: string;
   confirmedAt?: string;
+  rejectedAt?: string;
+  notes?: string;
 }
 
 export interface TelegramWebhookConfig {
@@ -43,6 +50,38 @@ export interface TelegramWebhookConfig {
   isActive: boolean;
   lastChecked?: string;
   error?: string;
+}
+
+export interface AdminAction {
+  id: string;
+  adminId: string;
+  adminUsername: string;
+  actionType: AdminActionType;
+  targetType: 'user' | 'fundraiser' | 'transaction' | 'system';
+  targetId?: string;
+  details: string;
+  createdAt: string;
+}
+
+export interface SystemStats {
+  activeFundraisers: number;
+  completedFundraisers: number;
+  blockedFundraisers: number;
+  totalUsers: number;
+  totalRaised: number;
+  recentTransactions: number;
+}
+
+export enum AdminActionType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  BLOCK = 'block',
+  UNBLOCK = 'unblock',
+  LOGIN = 'login',
+  LOGOUT = 'logout',
+  CONFIRM_PAYMENT = 'confirm_payment',
+  REJECT_PAYMENT = 'reject_payment'
 }
 
 export enum PaymentMethod {

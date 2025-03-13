@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({
       <div className="space-y-1 animate-slide-down">
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{title}</h1>
         {description && (
-          <p className="text-muted-foreground">{description}</p>
+          <p className="text-muted-foreground max-w-3xl">{description}</p>
         )}
       </div>
       {actions && (
