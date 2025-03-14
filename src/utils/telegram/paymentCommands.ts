@@ -7,104 +7,255 @@
 
 import { TelegramMessage } from './botService';
 import { PaymentMethod, TransactionStatus } from '../types';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Process a payment confirmation from a user
- * @param message The Telegram message object
- * @param fundraiserId The ID of the fundraiser
- * @returns A promise that resolves with the response message
+ * Обработать платеж от участника сбора
+ * @param message Объект сообщения Telegram
+ * @param fundraiserId ID сбора
+ * @param amount Сумма платежа
+ * @param comment Комментарий к платежу
+ * @returns Promise с текстом ответного сообщения
  */
-export const confirmPayment = async (message: TelegramMessage, fundraiserId: string): Promise<string> => {
+export const processPayment = async (message: TelegramMessage, fundraiserId: string, amount: number, comment?: string): Promise<string> => {
   if (!message.from) {
     return "Извините, не удалось определить отправителя сообщения.";
   }
   
-  // In a real app, would create a transaction record in the database
-  const transactionId = Date.now().toString(); // Simple mock ID
-  
-  // Log the mock transaction
-  console.log('Payment confirmation:', {
-    fundraiserId,
-    donorId: message.from.id.toString(),
-    donorUsername: message.from.username || message.from.first_name,
-    status: TransactionStatus.PENDING,
-    paymentMethod: PaymentMethod.TELEGRAM_STARS,
-    createdAt: new Date().toISOString()
-  });
-  
-  // For MVP, just return a success message
-  return "Спасибо! Ваш платеж ожидает подтверждения организатором сбора.\n\n" +
-    `Идентификатор транзакции: ${transactionId}\n` +
-    "Вы получите уведомление, когда платеж будет подтвержден.";
+  try {
+    // Проверяем, существует ли сбор и активен ли он
+    const { data: fundraiser, error } = await supabase
+      .from('fundraisers')
+      .select('*')
+      .eq('id', fundraiserId)
+      .single();
+    
+    if (error || !fundraiser) {
+      return "Сбор не найден или был удален.";
+    }
+    
+    if (fundraiser.status !== 'active') {
+      return `Сбор "${fundraiser.title}" ${fundraiser.status === 'completed' ? 'уже завершен' : 'отменен'} и не принимает платежей.`;
+    }
+    
+    // Проверяем, не является ли пользователь создателем сбора
+    if (message.from.id === fundraiser.creator_id) {
+      return "Вы не можете внести взнос в собственный сбор.";
+    }
+    
+    // Проверяем корректность суммы
+    if (isNaN(amount) || amount <= 0) {
+      return "Пожалуйста, укажите корректную сумму платежа больше нуля.";
+    }
+    
+    // Создаем запись о транзакции
+    const { data: transaction, error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        fundraiser_id: parseInt(fundraiserId),
+        donor_id: message.from.id,
+        donor_username: message.from.username || message.from.first_name,
+        amount: amount,
+        currency: 'RUB',
+        payment_method: PaymentMethod.TELEGRAM_STARS,
+        status: TransactionStatus.PENDING,
+        notes: comment || 'Без комментария'
+      })
+      .select()
+      .single();
+    
+    if (transactionError) {
+      console.error('Ошибка создания транзакции:', transactionError);
+      return "Произошла ошибка при обработке платежа. Пожалуйста, попробуйте позже.";
+    }
+    
+    // Отправляем уведомление организатору сбора (в реальном приложении)
+    
+    return `Спасибо! Ваш платеж на сумму ${amount} руб. для сбора "${fundraiser.title}" ожидает подтверждения организатором.\n\n` +
+      `Идентификатор транзакции: ${transaction.id}\n` +
+      "Вы получите уведомление, когда платеж будет подтвержден.";
+  } catch (error) {
+    console.error('Ошибка при обработке платежа:', error);
+    return "Произошла ошибка при обработке платежа. Пожалуйста, попробуйте позже.";
+  }
 };
 
 /**
- * Process payment approval by a fundraiser organizer
- * @param message The Telegram message object
- * @param transactionId The ID of the transaction to approve
- * @returns A promise that resolves with the response message
+ * Подтвердить платеж организатором сбора
+ * @param message Объект сообщения Telegram
+ * @param transactionId ID транзакции
+ * @returns Promise с текстом ответного сообщения
  */
-export const approvePayment = async (message: TelegramMessage, transactionId: string): Promise<string> => {
+export const confirmPayment = async (message: TelegramMessage, transactionId: string): Promise<string> => {
   if (!message.from) {
     return "Извините, не удалось определить отправителя сообщения.";
   }
   
-  // In a real app, would update the transaction status in the database
-  
-  // Log the mock approval
-  console.log('Payment approval:', {
-    transactionId,
-    approverId: message.from.id.toString(),
-    approverUsername: message.from.username || message.from.first_name,
-    status: TransactionStatus.CONFIRMED,
-    confirmedAt: new Date().toISOString()
-  });
-  
-  // For MVP, just return a success message
-  return `Платеж с идентификатором ${transactionId} успешно подтвержден.\n\n` +
-    "Участник получит уведомление о подтверждении платежа.";
+  try {
+    // Получаем информацию о транзакции
+    const { data: transaction, error } = await supabase
+      .from('transactions')
+      .select('*, fundraisers(*)')
+      .eq('id', transactionId)
+      .single();
+    
+    if (error || !transaction) {
+      return "Транзакция не найдена или была удалена.";
+    }
+    
+    // Проверяем, является ли пользователь организатором сбора
+    if (message.from.id !== transaction.fundraisers.creator_id) {
+      return "У вас нет прав для подтверждения этой транзакции.";
+    }
+    
+    // Проверяем статус транзакции
+    if (transaction.status !== TransactionStatus.PENDING) {
+      return `Эта транзакция уже ${transaction.status === TransactionStatus.CONFIRMED ? 'подтверждена' : 'отклонена'}.`;
+    }
+    
+    // Обновляем статус транзакции
+    const { error: updateError } = await supabase
+      .from('transactions')
+      .update({
+        status: TransactionStatus.CONFIRMED,
+        confirmed_at: new Date().toISOString()
+      })
+      .eq('id', transactionId);
+    
+    if (updateError) {
+      console.error('Ошибка обновления статуса транзакции:', updateError);
+      return "Произошла ошибка при подтверждении платежа. Пожалуйста, попробуйте позже.";
+    }
+    
+    // Обновляем сумму собранных средств в сборе
+    const newRaisedAmount = (transaction.fundraisers.raised || 0) + transaction.amount;
+    
+    const { error: fundraiserUpdateError } = await supabase
+      .from('fundraisers')
+      .update({
+        raised: newRaisedAmount,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', transaction.fundraiser_id);
+    
+    if (fundraiserUpdateError) {
+      console.error('Ошибка обновления суммы сбора:', fundraiserUpdateError);
+    }
+    
+    // В реальном приложении здесь отправили бы уведомление донору
+    
+    return `Платеж на сумму ${transaction.amount} ${transaction.currency || 'руб.'} успешно подтвержден.\n\n` +
+      `Сбор "${transaction.fundraisers.title}" теперь имеет ${newRaisedAmount}/${transaction.fundraisers.goal} руб.\n` +
+      "Участник получит уведомление о подтверждении платежа.";
+  } catch (error) {
+    console.error('Ошибка при подтверждении платежа:', error);
+    return "Произошла ошибка при подтверждении платежа. Пожалуйста, попробуйте позже.";
+  }
 };
 
 /**
- * Process payment rejection by a fundraiser organizer
- * @param message The Telegram message object
- * @param transactionId The ID of the transaction to reject
- * @param reason The reason for rejection
- * @returns A promise that resolves with the response message
+ * Отклонить платеж организатором сбора
+ * @param message Объект сообщения Telegram
+ * @param transactionId ID транзакции
+ * @param reason Причина отклонения
+ * @returns Promise с текстом ответного сообщения
  */
 export const rejectPayment = async (message: TelegramMessage, transactionId: string, reason?: string): Promise<string> => {
   if (!message.from) {
     return "Извините, не удалось определить отправителя сообщения.";
   }
   
-  // In a real app, would update the transaction status in the database
-  
-  // Log the mock rejection
-  console.log('Payment rejection:', {
-    transactionId,
-    rejecterId: message.from.id.toString(),
-    rejectorUsername: message.from.username || message.from.first_name,
-    status: TransactionStatus.REJECTED,
-    rejectedAt: new Date().toISOString(),
-    reason: reason || 'No reason provided'
-  });
-  
-  // For MVP, just return a success message
-  return `Платеж с идентификатором ${transactionId} отклонен.\n\n` +
-    `Причина: ${reason || 'Не указана'}\n\n` +
-    "Участник получит уведомление об отклонении платежа.";
+  try {
+    // Получаем информацию о транзакции
+    const { data: transaction, error } = await supabase
+      .from('transactions')
+      .select('*, fundraisers(*)')
+      .eq('id', transactionId)
+      .single();
+    
+    if (error || !transaction) {
+      return "Транзакция не найдена или была удалена.";
+    }
+    
+    // Проверяем, является ли пользователь организатором сбора
+    if (message.from.id !== transaction.fundraisers.creator_id) {
+      return "У вас нет прав для отклонения этой транзакции.";
+    }
+    
+    // Проверяем статус транзакции
+    if (transaction.status !== TransactionStatus.PENDING) {
+      return `Эта транзакция уже ${transaction.status === TransactionStatus.CONFIRMED ? 'подтверждена' : 'отклонена'}.`;
+    }
+    
+    // Обновляем статус транзакции
+    const { error: updateError } = await supabase
+      .from('transactions')
+      .update({
+        status: TransactionStatus.REJECTED,
+        rejected_at: new Date().toISOString(),
+        notes: reason ? `${transaction.notes || ''}\nПричина отклонения: ${reason}` : transaction.notes
+      })
+      .eq('id', transactionId);
+    
+    if (updateError) {
+      console.error('Ошибка обновления статуса транзакции:', updateError);
+      return "Произошла ошибка при отклонении платежа. Пожалуйста, попробуйте позже.";
+    }
+    
+    // В реальном приложении здесь отправили бы уведомление донору
+    
+    return `Платеж на сумму ${transaction.amount} ${transaction.currency || 'руб.'} отклонен.\n\n` +
+      `Причина: ${reason || 'Не указана'}\n` +
+      "Участник получит уведомление об отклонении платежа.";
+  } catch (error) {
+    console.error('Ошибка при отклонении платежа:', error);
+    return "Произошла ошибка при отклонении платежа. Пожалуйста, попробуйте позже.";
+  }
 };
 
 /**
- * Get payment status for a user
- * @param userId The Telegram user ID
- * @returns A promise that resolves with the payment status as a string
+ * Получить статус платежей пользователя
+ * @param userId ID пользователя в Telegram
+ * @returns Promise с текстом ответного сообщения
  */
 export const getPaymentStatus = async (userId: number): Promise<string> => {
-  // In a real app, would fetch from database
-  // For MVP, return a mock response
-  return "Статус ваших платежей:\n\n" +
-    "1. День рождения Алексея - 500₽ (Подтвержден)\n" +
-    "2. Корпоратив - 1000₽ (Ожидает подтверждения)\n\n" +
-    "Общая сумма ваших взносов: 1500₽";
+  try {
+    // Получаем транзакции пользователя
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select('*, fundraisers(title)')
+      .eq('donor_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Ошибка получения статуса платежей:', error);
+      return "Произошла ошибка при получении статуса платежей. Пожалуйста, попробуйте позже.";
+    }
+    
+    if (!transactions || transactions.length === 0) {
+      return "У вас пока нет совершенных платежей.";
+    }
+    
+    let statusText = "Статус ваших платежей:\n\n";
+    let totalAmount = 0;
+    
+    transactions.forEach((t, index) => {
+      const status = t.status === TransactionStatus.CONFIRMED ? 'Подтвержден' 
+        : t.status === TransactionStatus.REJECTED ? 'Отклонен' 
+        : 'Ожидает подтверждения';
+      
+      statusText += `${index + 1}. ${t.fundraisers.title} - ${t.amount} ${t.currency || 'руб.'} (${status})\n`;
+      
+      if (t.status === TransactionStatus.CONFIRMED) {
+        totalAmount += t.amount;
+      }
+    });
+    
+    statusText += `\nОбщая сумма ваших подтвержденных взносов: ${totalAmount} руб.`;
+    
+    return statusText;
+  } catch (error) {
+    console.error('Ошибка при получении статуса платежей:', error);
+    return "Произошла ошибка при получении статуса платежей. Пожалуйста, попробуйте позже.";
+  }
 };
