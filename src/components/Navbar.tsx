@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -10,7 +9,12 @@ import {
   Settings, 
   Menu,
   X,
-  LogOut
+  LogOut,
+  DollarSign,
+  BarChart,
+  CreditCard,
+  MessageSquare,
+  Bot
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
@@ -69,6 +73,49 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const navItems = [
+    {
+      title: "Dashboard",
+      icon: <BarChart className="h-5 w-5" />,
+      href: "/dashboard",
+    },
+    {
+      title: "Fundraisers",
+      icon: <DollarSign className="h-5 w-5" />,
+      href: "/fundraisers",
+    },
+    {
+      title: "Users",
+      icon: <Users className="h-5 w-5" />,
+      href: "/users",
+    },
+    {
+      title: "Transactions",
+      icon: <CreditCard className="h-5 w-5" />,
+      href: "/transactions",
+    },
+    {
+      title: "Admin Logs",
+      icon: <FileText className="h-5 w-5" />,
+      href: "/admin-logs",
+    },
+    {
+      title: "Bot Commands",
+      icon: <MessageSquare className="h-5 w-5" />,
+      href: "/telegram-commands",
+    },
+    {
+      title: "Bot Settings",
+      icon: <Bot className="h-5 w-5" />,
+      href: "/telegram-bot-settings",
+    },
+    {
+      title: "Settings",
+      icon: <Settings className="h-5 w-5" />,
+      href: "/settings",
+    },
+  ];
+
   return (
     <>
       {/* Mobile menu button */}
@@ -95,30 +142,15 @@ const Navbar = () => {
         </div>
         
         <nav className="flex flex-col gap-1 flex-1">
-          <NavItem
-            to="/"
-            label="Dashboard"
-            icon={<LayoutDashboard className="w-5 h-5" />}
-            isActive={isActive('/')}
-          />
-          <NavItem
-            to="/fundraisers"
-            label="Fundraisers"
-            icon={<FileText className="w-5 h-5" />}
-            isActive={isActive('/fundraisers')}
-          />
-          <NavItem
-            to="/users"
-            label="Users"
-            icon={<Users className="w-5 h-5" />}
-            isActive={isActive('/users')}
-          />
-          <NavItem
-            to="/settings"
-            label="Settings"
-            icon={<Settings className="w-5 h-5" />}
-            isActive={isActive('/settings')}
-          />
+          {navItems.map((item) => (
+            <NavItem
+              key={item.href}
+              to={item.href}
+              label={item.title}
+              icon={item.icon}
+              isActive={isActive(item.href)}
+            />
+          ))}
         </nav>
         
         <Button variant="outline" className="mt-auto gap-2">
@@ -147,34 +179,16 @@ const Navbar = () => {
         </div>
         
         <nav className="flex flex-col gap-1 flex-1">
-          <NavItem
-            to="/"
-            label="Dashboard"
-            icon={<LayoutDashboard className="w-5 h-5" />}
-            isActive={isActive('/')}
-            onClick={closeMobileMenu}
-          />
-          <NavItem
-            to="/fundraisers"
-            label="Fundraisers"
-            icon={<FileText className="w-5 h-5" />}
-            isActive={isActive('/fundraisers')}
-            onClick={closeMobileMenu}
-          />
-          <NavItem
-            to="/users"
-            label="Users"
-            icon={<Users className="w-5 h-5" />}
-            isActive={isActive('/users')}
-            onClick={closeMobileMenu}
-          />
-          <NavItem
-            to="/settings"
-            label="Settings"
-            icon={<Settings className="w-5 h-5" />}
-            isActive={isActive('/settings')}
-            onClick={closeMobileMenu}
-          />
+          {navItems.map((item) => (
+            <NavItem
+              key={item.href}
+              to={item.href}
+              label={item.title}
+              icon={item.icon}
+              isActive={isActive(item.href)}
+              onClick={closeMobileMenu}
+            />
+          ))}
         </nav>
         
         <Button variant="outline" className="mt-auto gap-2">

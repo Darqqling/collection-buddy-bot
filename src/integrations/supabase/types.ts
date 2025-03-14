@@ -9,7 +9,191 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bot_config: {
+        Row: {
+          bot_token: string | null
+          created_at: string
+          id: number
+          last_webhook_check: string | null
+          updated_at: string
+          webhook_active: boolean | null
+          webhook_error: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          bot_token?: string | null
+          created_at?: string
+          id?: number
+          last_webhook_check?: string | null
+          updated_at?: string
+          webhook_active?: boolean | null
+          webhook_error?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          bot_token?: string | null
+          created_at?: string
+          id?: number
+          last_webhook_check?: string | null
+          updated_at?: string
+          webhook_active?: boolean | null
+          webhook_error?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: []
+      }
+      fundraisers: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          creator_id: number
+          creator_username: string | null
+          description: string | null
+          donations_count: number | null
+          goal: number
+          id: number
+          image_url: string | null
+          raised: number | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          creator_id: number
+          creator_username?: string | null
+          description?: string | null
+          donations_count?: number | null
+          goal: number
+          id?: number
+          image_url?: string | null
+          raised?: number | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          creator_id?: number
+          creator_username?: string | null
+          description?: string | null
+          donations_count?: number | null
+          goal?: number
+          id?: number
+          image_url?: string | null
+          raised?: number | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fundraisers_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_users"
+            referencedColumns: ["telegram_id"]
+          },
+        ]
+      }
+      telegram_users: {
+        Row: {
+          created_at: string
+          first_name: string
+          id: number
+          is_admin: boolean | null
+          is_banned: boolean | null
+          last_active: string | null
+          last_name: string | null
+          telegram_id: number
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          first_name: string
+          id?: number
+          is_admin?: boolean | null
+          is_banned?: boolean | null
+          last_active?: string | null
+          last_name?: string | null
+          telegram_id: number
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          first_name?: string
+          id?: number
+          is_admin?: boolean | null
+          is_banned?: boolean | null
+          last_active?: string | null
+          last_name?: string | null
+          telegram_id?: number
+          username?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          confirmed_at: string | null
+          created_at: string
+          currency: string | null
+          donor_id: number
+          donor_username: string | null
+          fundraiser_id: number
+          id: number
+          notes: string | null
+          payment_method: string
+          rejected_at: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          donor_id: number
+          donor_username?: string | null
+          fundraiser_id: number
+          id?: number
+          notes?: string | null
+          payment_method: string
+          rejected_at?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string | null
+          donor_id?: number
+          donor_username?: string | null
+          fundraiser_id?: number
+          id?: number
+          notes?: string | null
+          payment_method?: string
+          rejected_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_users"
+            referencedColumns: ["telegram_id"]
+          },
+          {
+            foreignKeyName: "transactions_fundraiser_id_fkey"
+            columns: ["fundraiser_id"]
+            isOneToOne: false
+            referencedRelation: "fundraisers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
