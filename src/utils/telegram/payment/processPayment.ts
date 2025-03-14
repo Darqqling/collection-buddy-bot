@@ -1,86 +1,97 @@
 
 /**
- * Payment processing module for Telegram Bot
+ * Process Payment Handler
  * 
- * This module handles the processing of payments from fundraiser participants.
+ * This module handles processing of new payments from bot users
  */
 
-import { TelegramMessage } from '../botService';
-import { PaymentMethod, TransactionStatus } from '../../types';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Обработать платеж от участника сбора
- * @param message Объект сообщения Telegram
- * @param fundraiserId ID сбора
- * @param amount Сумма платежа
- * @param comment Комментарий к платежу
- * @returns Promise с текстом ответного сообщения
+ * Process a payment from a user
+ * @param fundraiserId The ID of the fundraiser
+ * @param userId The ID of the user making the payment
+ * @param amount The payment amount
+ * @param comment Optional payment comment
+ * @returns A result object with success status and message
  */
-export const processPayment = async (message: TelegramMessage, fundraiserId: string, amount: number, comment?: string): Promise<string> => {
-  if (!message.from) {
-    return "Извините, не удалось определить отправителя сообщения.";
-  }
-  
+export const processPayment = async (
+  fundraiserId: string | number,
+  userId: number,
+  amount: number,
+  comment: string = ""
+): Promise<{ success: boolean; message: string; paymentId?: number }> => {
   try {
-    // Проверяем, существует ли сбор и активен ли он
-    const parsedId = parseInt(fundraiserId, 10);
-    if (isNaN(parsedId)) {
-      return "Некорректный ID сбора. Пожалуйста, используйте числовой ID.";
+    console.log(`Processing payment for fundraiser ${fundraiserId}, user ${userId}, amount ${amount}`);
+
+    // Convert fundraiserId to number if it's a string
+    const fundraiserIdNum = typeof fundraiserId === 'string' ? parseInt(fundraiserId, 10) : fundraiserId;
+    
+    if (isNaN(fundraiserIdNum)) {
+      console.error('Invalid fundraiser ID');
+      return { 
+        success: false, 
+        message: 'Неверный идентификатор сбора. Пожалуйста, проверьте ID и попробуйте снова.' 
+      };
     }
 
-    const { data: fundraiser, error } = await supabase
+    // Check if fundraiser exists and is active
+    const { data: fundraiser, error: fundraiserError } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', parsedId)
+      .eq('id', fundraiserIdNum)
       .single();
-    
-    if (error || !fundraiser) {
-      return "Сбор не найден или был удален.";
+
+    if (fundraiserError || !fundraiser) {
+      console.error('Fundraiser not found:', fundraiserError);
+      return {
+        success: false,
+        message: 'Сбор не найден. Пожалуйста, проверьте ID и попробуйте снова.'
+      };
     }
-    
+
     if (fundraiser.status !== 'active') {
-      return `Сбор "${fundraiser.title}" ${fundraiser.status === 'completed' ? 'уже завершен' : 'отменен'} и не принимает платежей.`;
+      return {
+        success: false,
+        message: `Сбор "${fundraiser.title}" сейчас ${
+          fundraiser.status === 'completed' ? 'завершен' : 
+          fundraiser.status === 'cancelled' ? 'отменен' : 'не активен'
+        }. Внесение платежей невозможно.`
+      };
     }
-    
-    // Проверяем, не является ли пользователь создателем сбора
-    if (message.from.id === fundraiser.creator_id) {
-      return "Вы не можете внести взнос в собственный сбор.";
-    }
-    
-    // Проверяем корректность суммы
-    if (isNaN(amount) || amount <= 0) {
-      return "Пожалуйста, укажите корректную сумму платежа больше нуля.";
-    }
-    
-    // Создаем запись о транзакции
-    const { data: transaction, error: transactionError } = await supabase
-      .from('transactions')
+
+    // Create new payment record
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
       .insert({
-        fundraiser_id: parsedId,
-        donor_id: message.from.id,
-        donor_username: message.from.username || message.from.first_name,
+        fundraiser_id: fundraiserIdNum,
+        user_id: userId,
         amount: amount,
-        currency: 'RUB',
-        payment_method: PaymentMethod.TELEGRAM_STARS,
-        status: TransactionStatus.PENDING,
-        notes: comment || 'Без комментария'
+        comment: comment,
+        status: 'pending',
+        created_at: new Date().toISOString()
       })
       .select()
       .single();
-    
-    if (transactionError) {
-      console.error('Ошибка создания транзакции:', transactionError);
-      return "Произошла ошибка при обработке платежа. Пожалуйста, попробуйте позже.";
+
+    if (paymentError) {
+      console.error('Error creating payment:', paymentError);
+      return {
+        success: false,
+        message: 'Произошла ошибка при создании платежа. Пожалуйста, попробуйте позже.'
+      };
     }
-    
-    // Отправляем уведомление организатору сбора (в реальном приложении)
-    
-    return `Спасибо! Ваш платеж на сумму ${amount} руб. для сбора "${fundraiser.title}" ожидает подтверждения организатором.\n\n` +
-      `Идентификатор транзакции: ${transaction.id}\n` +
-      "Вы получите уведомление, когда платеж будет подтвержден.";
+
+    return {
+      success: true,
+      message: `Ваш платеж на сумму ${amount} руб. для сбора "${fundraiser.title}" успешно создан и ожидает подтверждения организатором.`,
+      paymentId: payment.id
+    };
   } catch (error) {
-    console.error('Ошибка при обработке платежа:', error);
-    return "Произошла ошибка при обработке платежа. Пожалуйста, попробуйте позже.";
+    console.error('Error in processPayment:', error);
+    return {
+      success: false,
+      message: 'Произошла системная ошибка. Пожалуйста, попробуйте позже.'
+    };
   }
 };

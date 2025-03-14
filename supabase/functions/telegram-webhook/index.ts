@@ -100,7 +100,9 @@ serve(async (req: Request) => {
       const chatId = message.chat.id;
       
       // Save or update user
-      await saveUser(supabase, message.from);
+      if (message.from) {
+        await saveUser(supabase, message.from);
+      }
       
       // Handle commands
       if (message.text && message.text.startsWith('/')) {
@@ -163,7 +165,7 @@ async function handleCommand(supabase: any, message: TelegramMessage, botToken: 
     const text = message.text || '';
     const command = text.split(' ')[0].toLowerCase();
     
-    console.log(`Handling command: ${command}`);
+    console.log(`Handling command: ${command} from user: ${message.from.id}, chat: ${message.chat.id}`);
     
     switch (command) {
       case '/start':
