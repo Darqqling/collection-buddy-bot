@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from "@/components/Layout";
 import Header from "@/components/Header";
@@ -47,9 +46,7 @@ const Settings = () => {
   
   const { toast } = useToast();
 
-  // Имитация загрузки сохраненного токена при инициализации
   useEffect(() => {
-    // В реальном приложении здесь будет запрос к API для получения токена
     const savedToken = localStorage.getItem('telegramBotToken');
     if (savedToken) {
       setSavedBotToken(savedToken);
@@ -80,7 +77,6 @@ const Settings = () => {
   };
 
   const handleSaveBotToken = () => {
-    // Проверка на пустой токен
     if (!botToken || botToken.trim() === "" || botToken === "•".repeat(botToken.length)) {
       toast({
         title: "Ошибка сохранения",
@@ -90,7 +86,6 @@ const Settings = () => {
       return;
     }
 
-    // Сохраняем токен
     localStorage.setItem('telegramBotToken', botToken);
     setSavedBotToken(botToken);
     setBotToken("•".repeat(botToken.length));
@@ -106,7 +101,6 @@ const Settings = () => {
     setIsTesting(true);
     setTestStatus('testing');
     
-    // Имитация тестирования токена
     setTimeout(() => {
       setIsTesting(false);
       
@@ -125,7 +119,6 @@ const Settings = () => {
         });
       }
       
-      // Сбрасываем статус через 3 секунды
       setTimeout(() => setTestStatus('idle'), 3000);
     }, 1500);
   };
@@ -279,7 +272,10 @@ const Settings = () => {
           </TabsContent>
           
           <TabsContent value="webhook" className="space-y-4">
-            <WebhookSetup webhookConfig={webhookConfig} onUpdate={handleWebhookUpdate} />
+            <WebhookSetup
+              initialConfig={webhookConfig}
+              onUpdate={handleWebhookUpdate}
+            />
           </TabsContent>
           
           <TabsContent value="notifications" className="space-y-4">
