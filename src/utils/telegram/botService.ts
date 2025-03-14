@@ -1,9 +1,12 @@
+
 /**
  * Telegram Bot Service
  * 
  * This service handles the core functionality of the Telegram bot,
  * including message handling, command processing, and webhook management.
  */
+
+import { supabase } from "@/integrations/supabase/client";
 
 // Define types for Telegram bot messages and updates
 export interface TelegramUser {
@@ -44,18 +47,22 @@ export interface TelegramUpdate {
  */
 export const initializeBot = async (token: string): Promise<boolean> => {
   try {
-    // In a real implementation, this would involve:
-    // 1. Validating the token with Telegram API
-    // 2. Setting up webhook or polling
-    // 3. Registering command handlers
+    if (!token || token.length < 20) {
+      console.error('Invalid bot token');
+      return false;
+    }
+
+    // Validate the token with Telegram API
+    const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const data = await response.json();
     
-    console.log('Initializing bot with token:', token.substring(0, 5) + '...');
+    if (!data.ok) {
+      console.error('Error validating bot token:', data.description);
+      return false;
+    }
     
-    // Simulate API call to validate token
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For the MVP, just return true if the token is not empty and has a reasonable length
-    return token.length > 10;
+    console.log('Bot initialized:', data.result.username);
+    return true;
   } catch (error) {
     console.error('Error initializing bot:', error);
     return false;
@@ -70,14 +77,24 @@ export const initializeBot = async (token: string): Promise<boolean> => {
  */
 export const setWebhook = async (token: string, webhookUrl: string): Promise<boolean> => {
   try {
-    // In a real implementation, this would make an API call to Telegram's setWebhook method
-    console.log('Setting webhook for bot to:', webhookUrl);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For the MVP, just return true if both token and webhookUrl look valid
-    return token.length > 10 && webhookUrl.startsWith('https://');
+    if (!token || !webhookUrl) {
+      console.error('Token and webhook URL are required');
+      return false;
+    }
+
+    // Use Supabase function to set the webhook
+    const { data, error } = await supabase.functions.invoke('set-webhook', {
+      body: { 
+        webhookUrl 
+      }
+    });
+
+    if (error) {
+      console.error('Error setting webhook:', error);
+      return false;
+    }
+
+    return data.success;
   } catch (error) {
     console.error('Error setting webhook:', error);
     return false;
@@ -160,15 +177,50 @@ const handleCommand = async (message: TelegramMessage): Promise<void> => {
  */
 export const sendMessage = async (token: string, chatId: number, text: string): Promise<boolean> => {
   try {
-    // In a real implementation, this would make an API call to Telegram's sendMessage method
-    console.log('Sending message to chat', chatId, ':', text);
+    // Call Telegram sendMessage API
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text,
+        parse_mode: 'HTML',
+      }),
+    });
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const result = await response.json();
+    
+    if (!result.ok) {
+      console.error('Error sending message:', result);
+      return false;
+    }
     
     return true;
   } catch (error) {
     console.error('Error sending message:', error);
     return false;
+  }
+};
+
+/**
+ * Get info about the current bot
+ * @param token The Telegram bot token
+ * @returns A promise that resolves with bot info
+ */
+export const getBotInfo = async (token: string): Promise<any> => {
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const data = await response.json();
+    
+    if (!data.ok) {
+      throw new Error(data.description || 'Failed to get bot info');
+    }
+    
+    return data.result;
+  } catch (error) {
+    console.error('Error getting bot info:', error);
+    throw error;
   }
 };
