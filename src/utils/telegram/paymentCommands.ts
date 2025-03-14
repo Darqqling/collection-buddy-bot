@@ -24,10 +24,15 @@ export const processPayment = async (message: TelegramMessage, fundraiserId: str
   
   try {
     // Проверяем, существует ли сбор и активен ли он
+    const parsedId = parseInt(fundraiserId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID сбора. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: fundraiser, error } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', fundraiserId)
+      .eq('id', parsedId)
       .single();
     
     if (error || !fundraiser) {
@@ -52,7 +57,7 @@ export const processPayment = async (message: TelegramMessage, fundraiserId: str
     const { data: transaction, error: transactionError } = await supabase
       .from('transactions')
       .insert({
-        fundraiser_id: parseInt(fundraiserId),
+        fundraiser_id: parsedId,
         donor_id: message.from.id,
         donor_username: message.from.username || message.from.first_name,
         amount: amount,
@@ -93,10 +98,15 @@ export const confirmPayment = async (message: TelegramMessage, transactionId: st
   
   try {
     // Получаем информацию о транзакции
+    const parsedId = parseInt(transactionId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID транзакции. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: transaction, error } = await supabase
       .from('transactions')
       .select('*, fundraisers(*)')
-      .eq('id', transactionId)
+      .eq('id', parsedId)
       .single();
     
     if (error || !transaction) {
@@ -120,7 +130,7 @@ export const confirmPayment = async (message: TelegramMessage, transactionId: st
         status: TransactionStatus.CONFIRMED,
         confirmed_at: new Date().toISOString()
       })
-      .eq('id', transactionId);
+      .eq('id', parsedId);
     
     if (updateError) {
       console.error('Ошибка обновления статуса транзакции:', updateError);
@@ -167,10 +177,15 @@ export const rejectPayment = async (message: TelegramMessage, transactionId: str
   
   try {
     // Получаем информацию о транзакции
+    const parsedId = parseInt(transactionId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID транзакции. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: transaction, error } = await supabase
       .from('transactions')
       .select('*, fundraisers(*)')
-      .eq('id', transactionId)
+      .eq('id', parsedId)
       .single();
     
     if (error || !transaction) {
@@ -195,7 +210,7 @@ export const rejectPayment = async (message: TelegramMessage, transactionId: str
         rejected_at: new Date().toISOString(),
         notes: reason ? `${transaction.notes || ''}\nПричина отклонения: ${reason}` : transaction.notes
       })
-      .eq('id', transactionId);
+      .eq('id', parsedId);
     
     if (updateError) {
       console.error('Ошибка обновления статуса транзакции:', updateError);

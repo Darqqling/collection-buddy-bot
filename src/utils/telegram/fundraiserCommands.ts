@@ -1,4 +1,3 @@
-
 /**
  * Fundraiser Command Handlers for Telegram Bot
  * 
@@ -176,10 +175,15 @@ export const startCollection = async (message: TelegramMessage, fundraiserId: st
   
   try {
     // Проверяем, существует ли сбор и принадлежит ли он пользователю
+    const parsedId = parseInt(fundraiserId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID сбора. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: fundraiser, error } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', fundraiserId)
+      .eq('id', parsedId)
       .eq('creator_id', message.from.id)
       .single();
     
@@ -195,7 +199,7 @@ export const startCollection = async (message: TelegramMessage, fundraiserId: st
     const { error: updateError } = await supabase
       .from('fundraisers')
       .update({ status: 'active', updated_at: new Date().toISOString() })
-      .eq('id', fundraiserId);
+      .eq('id', parsedId);
     
     if (updateError) {
       console.error('Ошибка обновления статуса сбора:', updateError);
@@ -225,10 +229,15 @@ export const finishCollection = async (message: TelegramMessage, fundraiserId: s
   
   try {
     // Проверяем, существует ли сбор и принадлежит ли он пользователю
+    const parsedId = parseInt(fundraiserId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID сбора. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: fundraiser, error } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', fundraiserId)
+      .eq('id', parsedId)
       .eq('creator_id', message.from.id)
       .single();
     
@@ -248,7 +257,7 @@ export const finishCollection = async (message: TelegramMessage, fundraiserId: s
         updated_at: new Date().toISOString(),
         completed_at: new Date().toISOString()
       })
-      .eq('id', fundraiserId);
+      .eq('id', parsedId);
     
     if (updateError) {
       console.error('Ошибка обновления статуса сбора:', updateError);
@@ -279,10 +288,15 @@ export const cancelCollection = async (message: TelegramMessage, fundraiserId: s
   
   try {
     // Проверяем, существует ли сбор и принадлежит ли он пользователю
+    const parsedId = parseInt(fundraiserId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID сбора. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: fundraiser, error } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', fundraiserId)
+      .eq('id', parsedId)
       .eq('creator_id', message.from.id)
       .single();
     
@@ -301,7 +315,7 @@ export const cancelCollection = async (message: TelegramMessage, fundraiserId: s
         status: 'blocked', // Используем "blocked" как статус для отмененных сборов
         updated_at: new Date().toISOString()
       })
-      .eq('id', fundraiserId);
+      .eq('id', parsedId);
     
     if (updateError) {
       console.error('Ошибка обновления статуса сбора:', updateError);
@@ -379,10 +393,15 @@ export const listPayments = async (message: TelegramMessage, fundraiserId: strin
   
   try {
     // Проверяем, существует ли сбор и принадлежит ли он пользователю
+    const parsedId = parseInt(fundraiserId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID сбора. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: fundraiser, error } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', fundraiserId)
+      .eq('id', parsedId)
       .eq('creator_id', message.from.id)
       .single();
     
@@ -394,7 +413,7 @@ export const listPayments = async (message: TelegramMessage, fundraiserId: strin
     const { data: transactions, error: transactionsError } = await supabase
       .from('transactions')
       .select('*')
-      .eq('fundraiser_id', fundraiserId)
+      .eq('fundraiser_id', parsedId)
       .order('created_at', { ascending: false });
     
     if (transactionsError) {
@@ -441,10 +460,18 @@ export const listPayments = async (message: TelegramMessage, fundraiserId: strin
 export const getFundraiserDetails = async (message: TelegramMessage, fundraiserId: string): Promise<{text: string, showJoinButton: boolean}> => {
   try {
     // Получаем информацию о сборе из базы данных
+    const parsedId = parseInt(fundraiserId, 10);
+    if (isNaN(parsedId)) {
+      return {
+        text: "Некорректный ID сбора. Пожалуйста, используйте числовой ID.",
+        showJoinButton: false
+      };
+    }
+
     const { data: fundraiser, error } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', fundraiserId)
+      .eq('id', parsedId)
       .single();
     
     if (error || !fundraiser) {
@@ -461,7 +488,7 @@ export const getFundraiserDetails = async (message: TelegramMessage, fundraiserI
     const { count: participantsCount, error: countError } = await supabase
       .from('transactions')
       .select('donor_id', { count: 'exact', head: true })
-      .eq('fundraiser_id', fundraiserId);
+      .eq('fundraiser_id', parsedId);
     
     if (countError) {
       console.error('Ошибка при подсчете участников:', countError);
@@ -536,10 +563,15 @@ export const joinFundraiser = async (message: TelegramMessage, fundraiserId: str
   
   try {
     // Получаем информацию о сборе из базы данных
+    const parsedId = parseInt(fundraiserId, 10);
+    if (isNaN(parsedId)) {
+      return "Некорректный ID сбора. Пожалуйста, используйте числовой ID.";
+    }
+
     const { data: fundraiser, error } = await supabase
       .from('fundraisers')
       .select('*')
-      .eq('id', fundraiserId)
+      .eq('id', parsedId)
       .single();
     
     if (error || !fundraiser) {
