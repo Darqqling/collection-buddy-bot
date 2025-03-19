@@ -3,7 +3,7 @@
 
 CollectionBoxBot is a Telegram bot designed to automate the collection of funds for gifts within group chats. The system includes a bot interface, server backend, and admin CRM panel for centralized management.
 
-## Project Structure
+## Project Structure 
 
 - **Telegram Bot**: Interface for users to create and participate in fundraisers
 - **Server/API**: Backend for data management and business logic
